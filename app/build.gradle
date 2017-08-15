@@ -1,0 +1,268 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.github.triplet.play'
+
+repositories {
+    jcenter()
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+    maven {
+        url 'https://github.com/Goddchen/mvn-repo/raw/master/'
+    }
+    maven {
+        // only for achartengine, remove after: https://budgetbakers.atlassian.net/browse/WALLET-3374
+        url "https://repository-achartengine.forge.cloudbees.com/snapshot/"
+    }
+    maven {
+        url "http://files.couchbase.com/maven2/"
+    }
+    maven {
+        url "http://repo.commonsware.com.s3.amazonaws.com"
+    }
+    maven {
+        url "https://jitpack.io"
+    }
+    maven {
+        url 'https://zendesk.artifactoryonline.com/zendesk/repo'
+    }
+}
+
+def changeApkName = { variant ->
+    variant.outputs.all {
+        // http://stackoverflow.com/a/39654630/4024146
+        def branch = gitBranch().replaceAll('/', '-')
+        def newName = "${project.name}-${variant.name}-${variant.versionName}-${branch}-${variant.buildType.name}.apk"
+
+        println "project: ${project.name}"
+        println "variant.name: ${variant.name}"
+        println "variant.versionName: ${variant.versionName}"
+        println "variant.buildType.name: ${variant.buildType.name}"
+        println "branch: ${branch}"
+        println "INFO: Set outputFile to ${newName}"
+        outputFileName = newName
+    }
+}
+
+def gitBranch() {
+    if (project.hasProperty('git.branch')) {
+        return project.getProperty('git.branch')
+    }
+    return 'git rev-parse --abbrev-ref HEAD'.execute(null, project.rootDir).text.trim()
+}
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
+    defaultConfig {
+        applicationId "cz.mtrakal.branchissue"
+        minSdkVersion 16
+        targetSdkVersion 26
+        multiDexEnabled true
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility rootProject.sourceCompatibility
+        targetCompatibility rootProject.targetCompatibility
+    }
+
+    android.applicationVariants.all { variant ->
+        changeApkName(variant)
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.0'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.0'
+
+    // Google Play Services
+    implementation "com.google.android.gms:play-services-analytics:$rootProject.playServicesVersion"
+    implementation "com.google.android.gms:play-services-appinvite:$rootProject.playServicesVersion"
+    implementation "com.google.android.gms:play-services-location:$rootProject.playServicesVersion"
+    implementation "com.google.android.gms:play-services-maps:$rootProject.playServicesVersion"
+    implementation "com.google.android.gms:play-services-vision:$rootProject.playServicesVersion"
+    implementation "com.google.android.gms:play-services-gcm:$rootProject.playServicesVersion"
+    implementation "com.google.android.gms:play-services-auth:$rootProject.playServicesVersion"
+    implementation "com.google.android.gms:play-services-plus:$rootProject.playServicesVersion"
+
+    // Support Libraries
+    implementation "com.android.support:cardview-v7:$rootProject.supportLibraryVersion"
+    implementation "com.android.support:design:$rootProject.supportLibraryVersion"
+    implementation "com.android.support:gridlayout-v7:$rootProject.supportLibraryVersion"
+    implementation "com.android.support:palette-v7:$rootProject.supportLibraryVersion"
+    implementation "com.android.support:support-annotations:$rootProject.supportLibraryVersion"
+    implementation "com.android.support:support-v4:$rootProject.supportLibraryVersion"
+    implementation "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
+    implementation 'com.android.support:multidex:1.0.2'
+    implementation "com.android.support:customtabs:$rootProject.supportLibraryVersion"
+    implementation "com.android.support:support-v13:$rootProject.supportLibraryVersion"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+
+
+    //https://github.com/ksoichiro/Android-ObservableScrollView
+    implementation 'com.github.ksoichiro:android-observablescrollview:1.6.0'
+
+    // Material menu - https://github.com/balysv/material-menu
+    implementation 'com.balysv.materialmenu:material-menu:2.0.0'
+
+    // Circular imageviews - https://github.com/Pkmmte/CircularImageView
+    implementation 'com.pkmmte.view:circularimageview:1.1'
+
+    // Picasso - image loading library - http://square.github.io/picasso/
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+
+    // https://github.com/grantland/android-autofittextview
+    implementation 'me.grantland:autofittextview:0.2.1'
+
+    // amazon s3 https://github.com/aws/aws-sdk-android
+    implementation 'com.amazonaws:aws-android-sdk-core:2.4.6'
+    implementation 'com.amazonaws:aws-android-sdk-s3:2.4.6'
+
+    // https://github.com/afollestad/material-dialogs
+    implementation("com.afollestad.material-dialogs:core:$rootProject.materialDialogsVersion") {
+        exclude group: 'com.android.support'
+    }
+
+    // android image crop - https://github.com/jdamcd/android-crop
+    implementation 'com.soundcloud.android:android-crop:1.0.1@aar'
+
+    // location lib, https://github.com/mrmans0n/smart-location-lib
+    implementation("io.nlopez.smartlocation:library:$rootProject.smartlocation") {
+        transitive = false
+    }
+
+    // https://github.com/DreaminginCodeZH/MaterialProgressBar
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.4.1'
+
+//    implementation 'com.larswerkman:HoloColorPicker:1.4'
+//    implementation 'ro.tudorluca.numberpicker:numberpicker-library:1.0'
+
+    // AChartEngine https://github.com/ddanny/achartengine
+    implementation group: 'org.achartengine', name: 'achartengine', version: '1.2.0'
+
+    // https://github.com/gabrielemariotti/changeloglib
+    implementation 'com.github.gabrielemariotti.changeloglib:changelog:2.1.0'
+
+    // https://docs.newrelic.com/docs/release-notes/mobile-release-notes/android-release-notes
+//    implementation 'com.newrelic.agent.android:android-agent:4.265.0'
+
+    // fixme: obsolete! http://square.github.io/otto/
+    implementation "com.squareup:otto:$rootProject.ottoVersion"
+
+    // http://mvnrepository.com/artifact/net.sourceforge.javacsv/javacsv
+    implementation 'net.sourceforge.javacsv:javacsv:2.0'
+
+    // http://mvnrepository.com/artifact/net.sourceforge.jeval/jeval
+    implementation 'net.sourceforge.jeval:jeval:0.9.4'
+
+    // http://mvnrepository.com/artifact/org.joda/joda-convert
+    implementation 'org.joda:joda-convert:1.8.1'
+
+    // http://mvnrepository.com/artifact/org.joda/joda-money
+    implementation 'org.joda:joda-money:0.12'
+
+    // http://mvnrepository.com/artifact/joda-time/joda-time
+    implementation "joda-time:joda-time:$rootProject.jodaTimeVersion"
+
+    // https://fabric.io/kits/android/answers/install
+    implementation('com.crashlytics.sdk.android:answers:1.3.13@aar') {
+        transitive = true;
+    }
+
+    //crashlytics - https://fabric.io/kits/android/crashlytics/install
+    implementation("com.crashlytics.sdk.android:crashlytics:${rootProject.fabricVersion}@aar") {
+        exclude group: 'com.android.support'
+    }
+
+    // https://github.com/chrisbanes/PhotoView
+    implementation('com.github.chrisbanes:PhotoView:2.0.0') {
+        transitive = true
+    }
+
+    // https://github.com/mikepenz/MaterialDrawer
+    implementation('com.mikepenz:materialdrawer:5.9.1@aar') {
+        transitive = true
+    }
+
+    // Marshmallow permissions: https://github.com/hotchemi/PermissionsDispatcher
+    implementation "com.github.hotchemi:permissionsdispatcher:2.3.2"
+    annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:2.3.2"
+
+    // Material Date/Time range picker https://github.com/borax12/MaterialDateRangePicker
+    implementation 'com.borax12.materialdaterangepicker:library:1.9'
+
+    // https://github.com/PhilJay/MPAndroidChart
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.2'
+
+    // https://github.com/square/leakcanary
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+
+    // restart app library - https://github.com/JakeWharton/ProcessPhoenix
+    implementation 'com.jakewharton:process-phoenix:1.1.1' // 2.0.0 crash and reload to MainActivity as not-logged user
+
+    // https://github.com/mopub/mopub-android-sdk
+    implementation('com.mopub:mopub-sdk:4.5.1@aar') {
+        transitive = true
+    }
+
+    // ButterKnife https://github.com/JakeWharton/butterknife
+    implementation "com.jakewharton:butterknife:$rootProject.butterKnifeVersion"
+    annotationProcessor "com.jakewharton:butterknife-compiler:$rootProject.butterKnifeVersion"
+
+    // Android-Job https://github.com/evernote/android-job
+    implementation 'com.evernote:android-job:1.1.11'
+
+    // CalendarView https://github.com/prolificinteractive/material-calendarview
+    implementation 'com.prolificinteractive:material-calendarview:1.4.3'
+
+    // https://github.com/PaoloRotolo/AppIntro
+    implementation 'com.github.paolorotolo:appintro:4.0.0'
+
+    // https://developer.zendesk.com/embeddables/docs/android/version_information#release-notes
+    implementation 'com.zendesk:sdk:1.9.2.1'
+
+    // https://github.com/AnderWeb/discreteSeekBar
+    implementation 'org.adw.library:discrete-seekbar:1.0.1'
+
+    implementation 'org.honorato.multistatetogglebutton:multistatetogglebutton:0.2.2'
+
+    // https://github.com/google/dagger
+    implementation "com.google.dagger:dagger:$rootProject.daggerVersion"
+    annotationProcessor "com.google.dagger:dagger-compiler:$rootProject.daggerVersion"
+    compileOnly 'org.glassfish:javax.annotation:10.0-b28'
+
+    // https://github.com/uservoice/uservoice-android-sdk/blob/master/README.md
+    implementation 'com.uservoice:uservoice-android-sdk:1.2.5'
+
+    // www.amplitude.com
+    implementation 'com.amplitude:android-sdk:2.13.4'
+
+    // https://github.com/sephiroth74/android-target-tooltip
+    implementation 'it.sephiroth.android.library.targettooltip:target-tooltip-library:1.3.15'
+
+    // https://github.com/ongakuer/CircleIndicator
+    implementation 'me.relex:circleindicator:1.2.2@aar'
+
+    implementation 'com.journeyapps:zxing-android-embedded:3.5.0'
+
+    implementation 'com.android.billingclient:billing:dp-1'
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+
+    // https://github.com/duolingo/rtl-viewpager
+    compile 'com.duolingo.open:rtl-viewpager:1.0.2'
+}

@@ -1,0 +1,22 @@
+{
+  "project_info": {
+    "project_number": "22434342",
+    "project_id": "api-project-22434342"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:22434342:android:fec29a0677777777",
+        "android_client_info": {
+          "package_name": "com.droid4you.application.wallet"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "AIzaSyBp6yN_AAAAAAAAAA5h4KDOEF7n6WyONNsE"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}
